@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كويز تفاعلي - الأمر على عريضة</title>
+    <style>
+        body {
+            background: #0d1117;
+            color: #c5a059;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: #161b22;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(197, 160, 89, 0.2);
+            border: 1px solid #30363d;
+        }
+        h1 {
+            text-align: center;
+            border-bottom: 2px solid #c5a059;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        .question {
+            margin-bottom: 30px;
+            background: #0d1117;
+            padding: 20px;
+            border-radius: 12px;
+            border-right: 4px solid #c5a059;
+        }
+        .q-text {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #f0e6d3;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option {
+            background: #21262d;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            font-size: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .option:hover {
+            background: #30363d;
+            border-color: #c5a059;
+        }
+        .option.correct {
+            background: #1a3d2e;
+            border-color: #2ea043;
+            color: #2ea043;
+        }
+        .option.wrong {
+            background: #3d1a1a;
+            border-color: #f85149;
+            color: #f85149;
+        }
+        .option.disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        .feedback-icon {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .correct-answer-text {
+            font-size: 14px;
+            color: #8b949e;
+            margin-top: 10px;
+            padding: 10px;
+            background: #0d1117;
+            border-radius: 6px;
+            display: none;
+            border: 1px dashed #c5a059;
+        }
+        .result-box {
+            margin-top: 30px;
+            text-align: center;
+            padding: 20px;
+            background: #0d1117;
+            border-radius: 12px;
+            border: 2px solid #c5a059;
+            font-size: 22px;
+            font-weight: bold;
+        }
+        .btn-reset {
+            display: block;
+            margin: 20px auto 0;
+            padding: 12px 40px;
+            background: #c5a059;
+            color: #0d1117;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-reset:hover {
+            background: #d4b77c;
+            transform: scale(1.02);
+        }
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .option { font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚖️ كويز: تحليل الأمر على عريضة</h1>
+        <div id="quizContainer"></div>
+        <div id="result" class="result-box" style="display:none;"></div>
+        <button class="btn-reset" id="resetBtn" onclick="resetQuiz()">إعادة الاختبار</button>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                question: "1. ما هي الطبيعة القانونية لقرار (الأمر على عريضة) عند إصداره للمرة الأولى؟",
+                options: ["قرار قضائي فاصل في أصل الحق", "عمل قضائي يعتمد على مبدأ المواجهة", "عمل ولائي إداري وقائي مؤقت دون سماع الخصم"],
+                correct: 2
+            },
+            {
+                question: "2. كيف يجب أن يكون تقدير القاضي لشرط (رجحان الحق)؟",
+                options: ["يتطلب يقيناً تاماً بصحة الحق", "يكفي أن يستخلص من ظاهر الأوراق وجود حق جدي", "يتطلب تحقيقاً كاملاً في تزوير المستندات"],
+                correct: 1
+            },
+            {
+                question: "3. متى تتحول سلطة القاضي من (ولائية) إلى (قضائية) ملزمة بضمانات المواجهة؟",
+                options: ["بمجرد توقيع القاضي على الأمر", "عندما يرفع المدين تظلم وتنشأ خصومة", "عند تنفيذ الحجز التحفظي"],
+                correct: 1
+            },
+            {
+                question: "4. ما هو التكييف القانوني للشيك في القانون التجاري الإماراتي وقضاء التمييز؟",
+                options: ["أداة ضمان احتياطية", "أداة وفاء فوري تقوم مقام النقود", "عقد ائتمان مصرفي"],
+                correct: 1
+            },
+            {
+                question: "5. متى تعتبر المنازعة (جدية) مسقطة لاختصاص قاضي الأمور المستعجلة؟",
+                options: ["بمجرد كتابة مذكرة دفاع", "بمجرد ادعاء شفهي بأن الشيك للضمان", "عندما يُستند الدفع إلى دليل مادي موضوعي واتفاقية كتابية"],
+                correct: 2
+            },
+            {
+                question: "6. ما هو منطوق حكم تمييز دبي في القضية رقم 249 لسنة 1444هـ محل التعليق؟",
+                options: ["نقض الحكم وإعادته لمحكمة الاستئناف بهيئة مغايرة", "رفض الطعن وتأييد حكم الاستئناف", "إحالة القضية للقضاء الموضوعي وبطلان الأمر"],
+                correct: 0
+            }
+        ];
+
+        let score = 0;
+        let answered = 0;
+        const totalQuestions = quizData.length;
+        const container = document.getElementById('quizContainer');
+        const resultBox = document.getElementById('result');
+
+        function loadQuiz() {
+            container.innerHTML = '';
+            score = 0;
+            answered = 0;
+            resultBox.style.display = 'none';
+
+            quizData.forEach((q, index) => {
+                const qDiv = document.createElement('div');
+                qDiv.className = 'question';
+                qDiv.id = `q${index}`;
+
+                const qText = document.createElement('div');
+                qText.className = 'q-text';
+                qText.innerText = q.question;
+                qDiv.appendChild(qText);
+
+                const optContainer = document.createElement('div');
+                optContainer.className = 'options';
+
+                q.options.forEach((optText, optIndex) => {
+                    const optDiv = document.createElement('div');
+                    optDiv.className = 'option';
+                    optDiv.innerText = optText;
+                    optDiv.dataset.qIndex = index;
+                    optDiv.dataset.optIndex = optIndex;
+                    optDiv.onclick = () => handleAnswer(optDiv, index, optIndex);
+                    optContainer.appendChild(optDiv);
+                });
+
+                // Hidden div for correct answer reveal
+                const correctReveal = document.createElement('div');
+                correctReveal.className = 'correct-answer-text';
+                correctReveal.id = `reveal${index}`;
+                correctReveal.innerText = `الإجابة الصحيحة: ${q.options[q.correct]}`;
+                optContainer.appendChild(correctReveal);
+
+                qDiv.appendChild(optContainer);
+                container.appendChild(qDiv);
+            });
+        }
+
+        function handleAnswer(selectedDiv, qIndex, selectedOpt) {
+            const q = quizData[qIndex];
+            const options = document.querySelectorAll(`#q${qIndex} .option`);
+            const revealDiv = document.getElementById(`reveal${qIndex}`);
+
+            // Prevent double answering
+            if (selectedDiv.classList.contains('disabled')) return;
+
+            // Disable all options for this question
+            options.forEach(opt => opt.classList.add('disabled'));
+
+            if (selectedOpt === q.correct) {
+                selectedDiv.classList.add('correct');
+                selectedDiv.innerHTML += `<span class="feedback-icon"> ✅</span>`;
+                score++;
+            } else {
+                selectedDiv.classList.add('wrong');
+                selectedDiv.innerHTML += `<span class="feedback-icon"> ❌</span>`;
+                // Highlight correct one
+                options[q.correct].classList.add('correct');
+                options[q.correct].innerHTML += `<span class="feedback-icon"> ✅</span>`;
+                revealDiv.style.display = 'block';
+            }
+            answered++;
+
+            if (answered === totalQuestions) {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            resultBox.style.display = 'block';
+            let grade = '';
+            let emoji = '';
+            if (score === totalQuestions) { grade = 'مستشار قانوني متميز! (ذهبي)'; emoji = '🥇'; }
+            else if (score >= 4) { grade = 'ممارس متقن!'; emoji = '⚖️'; }
+            else { grade = 'طالب واعد، ننصح بمراجعة التأصيل الفقهي'; emoji = '📚'; }
+            
+            resultBox.innerHTML = `
+                <div style="font-size: 40px; margin-bottom: 10px;">${emoji}</div>
+                النتيجة: <span style="color: #f0e6d3;">${score}</span> من ${totalQuestions}<br>
+                <span style="color: #c5a059; font-size: 18px;">${grade}</span>
+            `;
+        }
+
+        function resetQuiz() {
+            loadQuiz();
+        }
+
+        // Initial load
+        loadQuiz();
+    </script>
+</body>
+  </html>
